@@ -1,0 +1,64 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id            Int            @id @default(autoincrement())
+  name          String
+  email         String         @unique
+  password      String
+  role          UserRole
+  createdAt     DateTime       @default(now())
+  purchaseSlips PurchaseSlip[]
+}
+
+model PurchaseSlip {
+  id          Int      @id @default(autoincrement())
+  slipNo      String   @unique
+  date        DateTime
+  farmer      String
+  location    String
+  mobile      String
+
+  item        String
+  type        String   // ✅ add this
+  grade       String
+
+  rate        Float
+  totalWeight Float
+  totalAmount Float
+
+  status      SlipStatus @default(PENDING)
+
+  createdById Int
+  createdAt   DateTime @default(now())
+
+  createdBy   User     @relation(fields: [createdById], references: [id])
+  weights     Weight[]
+}
+
+model Weight {
+  id     Int          @id @default(autoincrement())
+  value  Float
+  slipId Int
+  slip   PurchaseSlip @relation(fields: [slipId], references: [id])
+}
+
+enum UserRole {
+  PURCHASER
+  SUPERVISOR
+  FINANCER
+  ADMIN
+}
+
+enum SlipStatus {
+  PENDING
+  CONFIRMED
+  PAYMENT_PENDING
+  PAYMENT_DONE
+}
