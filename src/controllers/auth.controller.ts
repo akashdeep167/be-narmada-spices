@@ -5,10 +5,10 @@ import jwt from "jsonwebtoken";
 
 export const signIn = async (req: Request, res: Response) => {
   try {
-    const { email, password } = req.body;
+    const { username, password } = req.body;
 
     const user = await prisma.user.findUnique({
-      where: { email },
+      where: { username },
     });
 
     if (!user) {
@@ -32,8 +32,8 @@ export const signIn = async (req: Request, res: Response) => {
       token,
       user: {
         id: user.id,
+        username: user.username,
         name: user.name,
-        email: user.email,
         role: user.role,
       },
     });

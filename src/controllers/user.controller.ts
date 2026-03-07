@@ -8,33 +8,29 @@ import jwt from "jsonwebtoken";
  */
 export const createUser = async (req: Request, res: Response) => {
   try {
-    const { name, email, password, role } = req.body;
+    const { username, name, password, role } = req.body;
 
-    // check existing user
     const existingUser = await prisma.user.findUnique({
-      where: { email },
+      where: { username },
     });
 
     if (existingUser) {
-      return res.status(400).json({ message: "Email already registered" });
+      return res.status(400).json({ message: "Username already exists" });
     }
 
-    // hash password
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    // create user
     const user = await prisma.user.create({
       data: {
+        username,
         name,
-        email,
         password: hashedPassword,
         role,
       },
     });
 
-    // generate token
     const token = jwt.sign(
-      { id: user.id, email: user.email },
+      { id: user.id, username: user.username },
       process.env.JWT_SECRET as string,
       { expiresIn: "7d" },
     );
@@ -43,8 +39,8 @@ export const createUser = async (req: Request, res: Response) => {
       message: "User created",
       user: {
         id: user.id,
+        username: user.username,
         name: user.name,
-        email: user.email,
         role: user.role,
       },
       token,
@@ -62,8 +58,8 @@ export const getUsers = async (_req: Request, res: Response) => {
     const users = await prisma.user.findMany({
       select: {
         id: true,
+        username: true,
         name: true,
-        email: true,
         role: true,
         createdAt: true,
       },
@@ -87,8 +83,8 @@ export const getUserById = async (req: Request, res: Response) => {
       where: { id },
       select: {
         id: true,
+        username: true,
         name: true,
-        email: true,
         role: true,
         createdAt: true,
       },
@@ -110,13 +106,13 @@ export const getUserById = async (req: Request, res: Response) => {
 export const updateUser = async (req: Request, res: Response) => {
   try {
     const id = Number(req.params.id);
-    const { name, email, role } = req.body;
+    const { username, name, role } = req.body;
 
     const user = await prisma.user.update({
       where: { id },
       data: {
+        username,
         name,
-        email,
         role,
       },
     });

@@ -139,7 +139,7 @@ export const getPurchaseSlips = async (req: Request, res: Response) => {
             select: {
               id: true,
               name: true,
-              email: true,
+              username: true,
               role: true,
             },
           },
