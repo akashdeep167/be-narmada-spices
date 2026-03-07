@@ -127,7 +127,7 @@ export const getPurchaseSlips = async (req: Request, res: Response) => {
       orderBy.createdAt = "desc";
     }
 
-    const [data, total] = await Promise.all([
+    const [rows, total] = await Promise.all([
       prisma.purchaseSlip.findMany({
         where,
         skip,
@@ -148,6 +148,17 @@ export const getPurchaseSlips = async (req: Request, res: Response) => {
 
       prisma.purchaseSlip.count({ where }),
     ]);
+
+    const data = rows.map((slip) => {
+      const shortageWeight = slip.totalWeight * 0.97;
+      const shortageAmount = shortageWeight * slip.rate;
+
+      return {
+        ...slip,
+        shortageWeight,
+        shortageAmount,
+      };
+    });
 
     res.json({
       data,
