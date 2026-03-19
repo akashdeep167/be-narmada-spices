@@ -1,5 +1,6 @@
 import { Request, Response } from "express";
 import prisma from "../config/prisma";
+import { AuthRequest } from "../middleware/auth.middleware";
 
 /**
  * CREATE PURCHASE SLIP
@@ -66,7 +67,7 @@ export const createPurchaseSlip = async (req: Request, res: Response) => {
 /**
  * GET ALL SLIPS
  */
-export const getPurchaseSlips = async (req: Request, res: Response) => {
+export const getPurchaseSlips = async (req: AuthRequest, res: Response) => {
   try {
     const page = Number(req.query.page) || 1;
     const limit = Number(req.query.limit) || 10;
@@ -85,7 +86,10 @@ export const getPurchaseSlips = async (req: Request, res: Response) => {
 
     const where: any = {};
 
-    if (createdById) {
+    // PURCHASER can only see their own slips
+    if (req.user?.role === "PURCHASER") {
+      where.createdById = req.user.id;
+    } else if (createdById) {
       where.createdById = Number(createdById);
     }
 
