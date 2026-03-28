@@ -7,6 +7,8 @@ import { AuthRequest } from "../middleware/auth.middleware";
  */
 export const createPurchaseSlip = async (req: Request, res: Response) => {
   try {
+    const authReq = req as AuthRequest;
+
     const {
       slipNo,
       date,
@@ -18,7 +20,6 @@ export const createPurchaseSlip = async (req: Request, res: Response) => {
       grade,
       rate,
       weights,
-      createdById,
     } = req.body;
 
     if (!weights || weights.length === 0) {
@@ -45,7 +46,7 @@ export const createPurchaseSlip = async (req: Request, res: Response) => {
         rate: Number(rate),
         totalWeight,
         totalAmount,
-        createdById,
+        createdById: authReq.user!.id,
         weights: {
           create: weights.map((w: any) => ({
             value: Number(w.value),
@@ -125,7 +126,23 @@ export const getPurchaseSlips = async (req: AuthRequest, res: Response) => {
 
     const orderBy: any = {};
 
-    if (sortBy) {
+    // Valid sortable fields
+    const validSortFields = [
+      "id",
+      "slipNo",
+      "date",
+      "farmer",
+      "item",
+      "type",
+      "grade",
+      "rate",
+      "totalWeight",
+      "totalAmount",
+      "status",
+      "createdAt",
+    ];
+
+    if (sortBy && validSortFields.includes(String(sortBy))) {
       orderBy[String(sortBy)] = order === "asc" ? "asc" : "desc";
     } else {
       orderBy.createdAt = "desc";
